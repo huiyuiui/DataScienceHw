@@ -15,7 +15,6 @@
 using namespace std;
 using Transaction = vector<int>;                // items
 using FrequentPattern = pair<vector<int>, int>; // first: pattern, second: frequency
-using ConditionalPath = pair<vector<int>, int>; // first: items, second: frequency
 
 /* Global Parameters*/
 int min_support;
@@ -183,7 +182,7 @@ vector<FrequentPattern> SinglePathFrequentPatterns(FP_Tree fp_tree)
     bool isFirstPattern = true;
 
     // search frequent patterns
-    while (true)
+    while (cur_node)
     {
         int item = cur_node->item;
         int count = cur_node->count;
@@ -215,7 +214,7 @@ vector<FrequentPattern> SinglePathFrequentPatterns(FP_Tree fp_tree)
         if (cur_node->children.size() == 1) // double check single path and switch to next
             cur_node = cur_node->children.begin()->second;
         else // nothing left in this path
-            break;
+            cur_node = NULL;
     }
 
     return single_path_patterns;
@@ -231,34 +230,29 @@ vector<FrequentPattern> MultiPathFrequentPatterns(FP_Tree fp_tree)
         // traverse header table by inverse order, since we want to mining fp tree by less frequency first
         int item = (*header).item;
         int cur_frequency = 0;
-        vector<ConditionalPath> conditional_paths;
+        vector<Transaction> conditional_transactions;
         FP_Node *cur_node = (*header).head->next_same;
+
         // search all the path which the leave is this node
         while (cur_node)
         {
-            ConditionalPath cur_path = {{}, cur_node->count}; // this path will based on current header node's frequency
-            cur_frequency += cur_node->count;                 // calculate frequency, this will be used in frequent pattern
-            FP_Node *path_node = cur_node->parent;            // path will not contain current node, so begin from its parent
-            if (path_node->parent)
+            // this path will based on current header node's frequency
+            cur_frequency += cur_node->count;         // current node frequency will be used in frequent pattern
+            for (int i = 0; i < cur_node->count; i++) // execute for frequency times to represent correct transactions frequency
             {
-                while (path_node->parent) // stop when we reach the root
+                FP_Node *path_node = cur_node->parent; // path will not contain current node, so begin from its parent
+                Transaction now_path;
+                if (path_node->parent)
                 {
-                    cur_path.first.push_back(path_node->item);
-                    path_node = path_node->parent;
+                    while (path_node->parent) // stop when we reach the root
+                    {
+                        now_path.push_back(path_node->item);
+                        path_node = path_node->parent;
+                    }
+                    conditional_transactions.push_back(now_path);
                 }
-                conditional_paths.push_back(cur_path);
             }
             cur_node = cur_node->next_same; // search for another path
-        }
-
-        // convert conditional paths to conditional transactions
-        vector<Transaction> conditional_transactions;
-        for (auto path : conditional_paths)
-        {
-            for (int i = 0; i < path.second; i++) // add path frequency times
-            {                                     // since we need to represent correct frequency in transactions
-                conditional_transactions.push_back(path.first);
-            }
         }
 
         // construct a conditional FP tree based on conditional transactions
@@ -317,12 +311,12 @@ int main(int argc, char *argv[])
     while (getline(in, transaction_str))
     {
         char *transaction_char = transaction_str.data();
-        char *item = strtok(transaction_char, (char*)",");
+        char *item = strtok(transaction_char, (char *)",");
         Transaction transaction;
         while (item != NULL)
         {
             transaction.push_back(atoi(item));
-            item = strtok(NULL, (char*)",");
+            item = strtok(NULL, (char *)",");
         }
         transactions.push_back(transaction);
         total_transactions++;

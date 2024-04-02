@@ -8,6 +8,7 @@
 #include <map>
 #include <math.h>
 #include <string>
+#include <time.h>
 #include <typeinfo>
 #include <vector>
 
@@ -297,6 +298,7 @@ bool isSinglePath(FP_Tree fp_tree)
 int main(int argc, char *argv[])
 {
     assert(argc == 4);
+    double start_time = clock();
     double min_sup_ratio = atof(argv[1]);
     string input_file = argv[2];
     string output_file = argv[3];
@@ -340,9 +342,11 @@ int main(int argc, char *argv[])
             if (i != pattern.first.size() - 1)
                 out << ",";
         }
-        float support = (float)pattern.second / (float)total_transactions;
+        double support = (double)pattern.second / (double)total_transactions;
         out << ":" << fixed << setprecision(4) << support << endl;
     }
 
+    double end_time = clock();
+    cout << "Excution time: " << (end_time - start_time) / CLOCKS_PER_SEC << endl;
     return 0;
 }

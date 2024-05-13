@@ -26,7 +26,10 @@ pip install scipy networkx
 
 ## Run sample code
 ```python
-python3 train.py --es_iters 30 --epochs 300 --use_gpu
+# GPU Version
+python train.py --es_iters 30 --epochs 300 --use_gpu
+# CPU Version
+python train.py --es_iters 30 --epochs 300  
 ```
 
 ## Dataset

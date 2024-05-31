@@ -73,6 +73,7 @@ class CMA_ES_Optimizer(Function): # need to inherit this class "Function"
                 # print("Evaluation times:", self.eval_times)
                 return 1
             values.append(value)
+
         selected_index = np.argsort(values)[:self.parent_size]
         self.parents = self.offsprings[selected_index]
         if(values[selected_index[0]] < self.optimal_value):
@@ -85,7 +86,7 @@ class CMA_ES_Optimizer(Function): # need to inherit this class "Function"
         self.prev_mean = self.mean
         now_mean = np.zeros(self.dim)
         for i in range(self.parent_size):
-            now_mean += self.parents[i] * self.weights[i]
+            now_mean += self.weights[i] * self.parents[i]
         self.mean = now_mean
         self.y_w = (self.mean - self.prev_mean) / self.step_size
 
@@ -102,12 +103,6 @@ class CMA_ES_Optimizer(Function): # need to inherit this class "Function"
     def update_step_size(self):
         self.p_sigma = (1 - self.c_sigma) * self.p_sigma + np.sqrt(self.c_sigma * (2 - self.c_sigma) * self.mu_w) * np.dot(self.inv_cov_mat, self.y_w)
         self.step_size = self.step_size * np.exp(self.c_sigma / self.d_sigma * (np.linalg.norm(self.p_sigma) / self.expected - 1))
-
-    # def cov_mat_decompose(self):
-    #     self.cov_mat = np.triu(self.cov_mat) + np.triu(self.cov_mat, k=1).T
-    #     square_diagonal, self.b_mat = np.linalg.eigh(self.cov_mat)
-    #     self.diagonal = np.sqrt(square_diagonal)
-    #     self.inv_cov_mat = np.dot(np.dot(self.b_mat , np.diag(1 / self.diagonal)), self.b_mat.T)
 
     def cov_mat_decompose(self):
         self.cov_mat = (self.cov_mat + self.cov_mat.T) / 2

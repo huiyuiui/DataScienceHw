@@ -79,6 +79,12 @@ class User:
         Hint:
             1. You can use self.model (the user's model), model (global model parameters).
         '''
+        global_params = list(model.parameters())
+        now_params = list(self.model.parameters())
+
+        with torch.no_grad(): # avoid calculate gradient
+            for now_param, global_param in zip(now_params, global_params):
+                now_param.data.mul_(1 - beta).add_(beta * global_param.data)
 
     def set_shared_parameters(self, model, mode='decode'):
         # only copy shared parameters to local

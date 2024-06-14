@@ -65,6 +65,18 @@ class Server:
             1. Use self.selected_users, user.train_samples.
             2. Replace the global model (self.model) with the aggregated model.
         '''
+        now_params = list(self.model.parameters())
+        total_samples = 0
+        new_params = [torch.zeros_like(param) for param in now_params]
+
+        for user in self.selected_users:
+            user_params = list(user.model.parameters())
+            total_samples += user.train_samples
+            for user_param, new_param in zip(user_params, new_params):
+                new_param.data += user_param.data * user.train_samples
+
+        for now_param, new_param in zip(now_params, new_params):
+            now_param.data.copy_(new_param.data / total_samples)
 
     def save_model(self):
         model_path = os.path.join(self.save_path, self.algorithm, "models", self.dataset)
@@ -95,6 +107,11 @@ class Server:
             1. Default 10 users to select, you can modify the args {--num_users} to change this hyper-parameter
             2. Note that {num_users} can not be larger than total users (i.e., num_users <= len(self.user))
         '''
+        assert num_users <= len(self.users)
+        
+        selected_indices = np.random.choice(len(self.users), num_users, replace=False)
+        self.selected_users = [self.users[i] for i in selected_indices]
+        return self.selected_users
 
     def init_loss_fn(self):
         self.loss= nn.CrossEntropyLoss()# nn.NLLLoss()

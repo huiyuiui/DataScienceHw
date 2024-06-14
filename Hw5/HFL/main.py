@@ -6,6 +6,7 @@ from utils.log_utils import set_logger
 from utils.model_utils import create_model
 import os
 import logging
+import time
 
 def create_server_n_user(args, i, logging):
     model = create_model(args.model, args.dataset, args.device)
@@ -28,8 +29,13 @@ def run_job(args, i, logging):
         server.test()
 
 def main(args, logging):
+    start_time = time.time()
     for i in range(args.times):
         run_job(args, i, logging)
+    end_time = time.time()
+    minutes = int((end_time - start_time) / 60)
+    seconds = int(end_time - start_time) % 60
+    print(f"Excution time: {minutes}m{seconds}s")
     print("Finished training.")
 
 if __name__ == "__main__":
